@@ -1,0 +1,174 @@
+
+-- REF: https://database.guide/sql-tutorial-for-beginners/
+--  ref: https://earthly.dev/blog/postgres-docker/
+
+
+ray@Rays-MBP ~ % docker run -d --name MBP_Mongo-demo -e MONGO_INITDB_ROOT_USERNAME=mongoadmin  -e MONGO_INITDB_ROOT_PASSWORD=mss -p 27017:27017 -v mongodemo:/data/db mongo:7.0
+
+
+
+
+
+docker run --name pgsql-dev -rm -e POSTGRES_PASSWORD=test1234 -p 5432:5432 postgres
+  --name pgsql-dev \
+  –rm \
+  -e POSTGRES_PASSWORD=test1234 \
+  -p 5432:5432 postgres
+
+
+docker run --name pgsql-dev --rm -e POSTGRES_PASSWORD=test1234 -p 5432:5432 postgres
+
+
+
+docker run --name pgsql-dev  -e POSTGRES_PASSWORD=test1234 -d  -v ${PWD}/postgres-docker:/var/lib/postgresql/data  -p 5432:5432 postgres  3f1ae1ace07ab7902851d8e968a4a0b245cd4171eaa91181e859f21cbea14415
+  
+  -e POSTGRES_PASSWORD=test1234 \
+  -d \
+  -v ${PWD}/postgres-docker:/var/lib/postgresql/data \
+  -p 5432:5432 postgres 
+3f1ae1ace07ab7902851d8e968a4a0b245cd4171eaa91181e859f21cbea14415
+
+
+
+
+
+
+docker pull mcr.microsoft.com/azure-sql-edge
+docker run --cap-add SYS_PTRACE -e 'ACCEPT_EULA=1' -e 'MSSQL_SA_PASSWORD=ThisisFun10-4' -p 1433:1433 --name Azuresqledge_MBP -d -v sqlvolume:/var/opt/mssql mcr.microsoft.com/azure-sql-edge
+
+
+
+
+
+
+
+
+
+
+
+--
+CREATE DATABASE PetHotel;
+
+USE PETHOTEL
+CREATE TABLE PetTypes
+(
+    PetTypeId   int NOT NULL PRIMARY KEY,
+    PetType     varchar(60) NOT NULL
+);
+
+
+CREATE TABLE Owners
+(
+    OwnerId     int NOT NULL PRIMARY KEY,
+    FirstName   varchar(60) NOT NULL,
+    LastName    varchar(60) NOT NULL,
+    Phone       varchar(20) NOT NULL,
+    Email       varchar(254)
+);
+
+CREATE TABLE Pets
+(
+    PetId       int NOT NULL PRIMARY KEY,
+    PetTypeId   int NOT NULL REFERENCES PetTypes (PetTypeId),
+    OwnerId     int NOT NULL REFERENCES Owners (OwnerId),
+    PetName     varchar(60) NOT NULL,
+    DOB         date NULL
+);
+
+
+INSERT INTO Owners( OwnerId, FirstName, LastName, Phone, Email )
+VALUES( 1, 'Homer', 'Connery', '(308) 555-0100', 'homer@example.com' );
+INSERT INTO Owners(OwnerId, FirstName, LastName, Phone, Email)
+VALUES( 2, 'Bart', 'Pitt', '(231) 465-3497', 'bart@example.com' );
+INSERT INTO Owners(OwnerId, FirstName, LastName, Phone)
+VALUES( 3, 'Nancy', 'Simpson', '(489) 591-0408' );
+INSERT INTO Owners(OwnerId, FirstName, LastName, Phone)
+VALUES( 4, 'Boris', 'Trump', '(349) 611-8908' ); 
+
+INSERT INTO PetTypes( PetTypeId, PetType )
+VALUES( 1, 'Bird' );
+INSERT INTO PetTypes( PetTypeId, PetType )
+VALUES( 2, 'Cat' );
+INSERT INTO PetTypes( PetTypeId, PetType )
+VALUES( 3, 'Dog' );
+INSERT INTO PetTypes( PetTypeId, PetType )
+VALUES( 4, 'Rabbit' );
+
+INSERT INTO Pets( PetId, PetTypeId, OwnerId, PetName, DOB )
+VALUES( 1, 2, 3, 'Fluffy', '2020-11-20' );
+INSERT INTO Pets( PetId, PetTypeId, OwnerId, PetName, DOB )
+VALUES( 2, 3, 3, 'Fetch', '2019-08-16' );
+INSERT INTO Pets( PetId, PetTypeId, OwnerId, PetName, DOB )
+VALUES( 3, 2, 2, 'Scratch', '2018-10-01' );
+INSERT INTO Pets( PetId, PetTypeId, OwnerId, PetName, DOB )
+VALUES( 4, 3, 3, 'Wag', '2020-03-15' );
+INSERT INTO Pets( PetId, PetTypeId, OwnerId, PetName, DOB )
+VALUES( 5, 1, 1, 'Tweet', '2020-11-28' );
+INSERT INTO Pets( PetId, PetTypeId, OwnerId, PetName, DOB )
+VALUES( 6, 3, 4, 'Fluffy', '2020-09-17' );
+INSERT INTO Pets( PetId, PetTypeId, OwnerId, PetName )
+VALUES( 7, 3, 2, 'Bark' );
+INSERT INTO Pets( PetId, PetTypeId, OwnerId, PetName )
+VALUES( 8, 2, 4, 'Meow' );
+
+SELECT * FROM Pets;
+SELECT * FROM PetTypes;
+SELECT * FROM Owners;
+
+
+
+SELECT 
+    PetTypes.PetType,
+    COUNT(Pets.PetTypeId) AS Count
+FROM Pets 
+LEFT JOIN PetTypes 
+ON Pets.PetTypeId = PetTypes.PetTypeId
+GROUP BY PetTypes.PetType
+ORDER BY Count DESC;
+
+SELECT 
+    Pets.PetName,
+    PetTypes.PetType
+FROM Pets 
+INNER JOIN PetTypes 
+ON Pets.PetTypeId = PetTypes.PetTypeId;
+
+SELECT 
+    p.PetName AS Pet,
+    pt.PetType AS "Pet Type"
+FROM PetTypes pt
+LEFT JOIN Pets p
+ON p.PetTypeId = pt.PetTypeId;
+
+CREATE VIEW vPetTypeCount AS
+SELECT 
+    PetTypes.PetType,
+    COUNT(Pets.PetTypeId) AS Count
+FROM Pets 
+LEFT JOIN PetTypes 
+ON Pets.PetTypeId = PetTypes.PetTypeId
+GROUP BY PetTypes.PetType;
+
+SELECT * FROM vPetTypeCount;
+
+SELECT * FROM vPetTypeCount
+ORDER BY Count DESC;
+
+CREATE PROCEDURE uspGetPetById
+    @PetId int
+AS
+    SET NOCOUNT ON;
+    SELECT 
+        p.PetName, 
+        p.DOB, 
+        pt.PetType,
+        CONCAT(o.FirstName, ' ', o.LastName) AS OwnerName
+    FROM Pets p 
+    INNER JOIN PetTypes pt 
+    ON p.PetTypeId = pt.PetTypeId
+    INNER JOIN Owners o 
+    ON o.OwnerId = p.OwnerId
+    WHERE p.PetId = @PetId;
+
+    EXEC uspGetPetById @PetId = 3;
+

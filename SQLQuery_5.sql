@@ -1,0 +1,1 @@
+Select * FROM pets.iot_factory;

@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS `iot_factory_Temperature`;

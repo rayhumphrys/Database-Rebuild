@@ -1,0 +1,1 @@
+  `lat` varchar(150) NULL,
